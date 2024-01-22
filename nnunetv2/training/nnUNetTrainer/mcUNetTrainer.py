@@ -67,8 +67,6 @@ class MultiClassDeepSupervisionWrapper(nn.Module):
             for dataset_ind, labels_description in enumerate( self.dataset_labels_description):
                 if ((labels_description[0] <= labels_per_image).all() and (labels_per_image < labels_description[1]).all()):
                     dataset_ind_list.append(labels_description)
-                else:
-                    exit(0)
 
         for image_ind,dataset_ind in enumerate( dataset_ind_list):
             dataset_ind_first_label_ind = self.dataset_labels_description[dataset_ind][0]
