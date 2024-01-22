@@ -57,7 +57,7 @@ class MultiClassDeepSupervisionWrapper(nn.Module):
         input = args[0]
         target = args[1]
 
-        labels_per_image_list = [target[0][i:i+1].unique() for i in range(len(target[0].shape[0]))]
+        labels_per_image_list = [target[0][i:i+1].unique() for i in range(target[0].shape[0])]
         for i in range(len(labels_per_image_list)):
             if (labels_per_image_list[i] >= self.dataset_labels_description[0][1]).any():
                 labels_per_image_list[i] = labels_per_image_list[i][labels_per_image_list[i] != 0]
