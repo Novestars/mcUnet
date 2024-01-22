@@ -66,15 +66,15 @@ class MultiClassDeepSupervisionWrapper(nn.Module):
         for labels_per_image in labels_per_image_list:
             for dataset_ind, labels_description in enumerate( self.dataset_labels_description):
                 if ((labels_description[0] <= labels_per_image).all() and (labels_per_image < labels_description[1]).all()):
-                    dataset_ind_list.append(labels_description)
+                    dataset_ind_list.append(dataset_ind)
 
         for image_ind,dataset_ind in enumerate( dataset_ind_list):
             dataset_ind_first_label_ind = self.dataset_labels_description[dataset_ind][0]
             dataset_ind_last_label_ind = self.dataset_labels_description[dataset_ind][1]
 
             for i in range(len(input)):
-                output[i] = output[i][image_ind:image_ind+1, dataset_ind_first_label_ind:dataset_ind_last_label_ind]
-                target[i] = torch.clamp(target[i][image_ind:image_ind+1] - dataset_ind_first_label_ind, 0,dataset_ind_last_label_ind)
+                output[i][image_ind:image_ind+1] = output[i][image_ind:image_ind+1, dataset_ind_first_label_ind:dataset_ind_last_label_ind]
+                target[i][image_ind:image_ind+1] = torch.clamp(target[i][image_ind:image_ind+1] - dataset_ind_first_label_ind, 0,dataset_ind_last_label_ind)
 
         loss = sum([weights[i] * self.loss(*inputs) for i, inputs in enumerate(zip(*args)) if weights[i] != 0.0])
         return loss
