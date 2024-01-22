@@ -2,7 +2,7 @@ import torch
 from nnunetv2.training.nnUNetTrainer.nnUNetTrainer import nnUNetTrainer
 from nnunetv2.training.loss.robust_ce_loss import RobustCrossEntropyLoss
 import numpy as np
-
+import torch.nn as nn
 
 def class_projection(self, output, target):
     ds_level = len(output)
