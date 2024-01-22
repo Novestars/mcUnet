@@ -104,7 +104,7 @@ class mcUNetTrainer(nnUNetTrainer):
             # we don't use the lowest 2 outputs. Normalize weights so that they sum to 1
             weights = weights / weights.sum()
             # now wrap the loss
-            loss = DeepSupervisionWrapper(loss, weights)
+            loss = MultiClassDeepSupervisionWrapper(loss, weights)
 
         return loss
 
