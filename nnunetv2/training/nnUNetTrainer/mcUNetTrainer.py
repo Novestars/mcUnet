@@ -80,7 +80,7 @@ class MultiClassDeepSupervisionWrapper(nn.Module):
                 new_target.append(torch.clamp(target[i][image_ind:image_ind+1] - dataset_ind_first_label_ind, 0,dataset_ind_last_label_ind))
 
 
-        loss = sum([weights[i] * self.loss(*inputs) for i, inputs in enumerate(zip(*args)) if weights[i] != 0.0])
+        loss = sum([new_weight[i] * self.loss(*inputs) for i, inputs in enumerate(zip(*args)) if new_weight[i] != 0.0])
         return loss
 
 class mcUNetTrainer(nnUNetTrainer):
