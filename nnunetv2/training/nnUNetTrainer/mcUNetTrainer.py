@@ -36,7 +36,7 @@ class MultiClassDeepSupervisionWrapper(nn.Module):
         l = w0 * loss(input0[0], input1[0], ...) +  w1 * loss(input0[1], input1[1], ...) + ...
         If weights are None, all w will be 1.
         """
-        super(DeepSupervisionWrapper, self).__init__()
+        super(MultiClassDeepSupervisionWrapper, self).__init__()
         assert any([x != 0 for x in weight_factors]), "At least one weight factor should be != 0.0"
         self.weight_factors = tuple(weight_factors)
         self.loss = loss
