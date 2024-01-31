@@ -45,7 +45,7 @@ class mcUNetPredictor(nnUNetPredictor):
                  verbose: bool = False,
                  verbose_preprocessing: bool = False,
                  allow_tqdm: bool = True):
-        super.__init__(tile_step_size=tile_step_size, use_gaussian=use_gaussian, use_mirroring=use_mirroring,
+        nnUNetPredictor.__init__(tile_step_size=tile_step_size, use_gaussian=use_gaussian, use_mirroring=use_mirroring,
                        perform_everything_on_device=perform_everything_on_device, device=device, verbose=verbose,
                        verbose_preprocessing=verbose_preprocessing, allow_tqdm=allow_tqdm)
         # The format of dataset_label_dict is {'dataset_name': [label1, label2, ...], ...}
