@@ -155,10 +155,10 @@ class LabelManager(object):
             assert self.regions_class_order is not None, 'if region-based training is requested then you need to ' \
                                                          'define regions_class_order!'
             # check correct number of outputs
-        assert predicted_probabilities.shape[0] == self.num_segmentation_heads, \
-            f'unexpected number of channels in predicted_probabilities. Expected {self.num_segmentation_heads}, ' \
-            f'got {predicted_probabilities.shape[0]}. Remember that predicted_probabilities should have shape ' \
-            f'(c, x, y(, z)).'
+        # assert predicted_probabilities.shape[0] == self.num_segmentation_heads, \
+        #     f'unexpected number of channels in predicted_probabilities. Expected {self.num_segmentation_heads}, ' \
+        #     f'got {predicted_probabilities.shape[0]}. Remember that predicted_probabilities should have shape ' \
+        #     f'(c, x, y(, z)).'
 
         if self.has_regions:
             if isinstance(predicted_probabilities, np.ndarray):

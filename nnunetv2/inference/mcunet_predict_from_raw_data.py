@@ -45,17 +45,10 @@ class mcUNetPredictor(nnUNetPredictor):
                  verbose: bool = False,
                  verbose_preprocessing: bool = False,
                  allow_tqdm: bool = True):
-        nnUNetPredictor.__init__(tile_step_size=tile_step_size, use_gaussian=use_gaussian, use_mirroring=use_mirroring,
-                       perform_everything_on_device=perform_everything_on_device, device=device, verbose=verbose,
-                       verbose_preprocessing=verbose_preprocessing, allow_tqdm=allow_tqdm)
         # The format of dataset_label_dict is {'dataset_name': [label1, label2, ...], ...}
-        assert self.plans_manager.plan['dataset_label_dict'] is not None, "dataset_label_dict must be not None"
-        self.dataset_label_dict = self.plans_manager.plan['dataset_label_dict']
-        labels_num_per_dataset = [len(label_list) for label_list in self.dataset_label_dict.values()]
-        labels_start_ind_per_dataset = [sum(labels_num_per_dataset[:i]) for i in range(len(labels_num_per_dataset))]
-        labels_end_ind_per_dataset = [sum(labels_num_per_dataset[:i+1]) for i in range(len(labels_num_per_dataset))]
+        super().__init__(tile_step_size, use_gaussian, use_mirroring, perform_everything_on_device, device, verbose, verbose_preprocessing, allow_tqdm)
 
-        self.dataset_label_start_end_dict = zip(self.dataset_label_dict.keys(), [[i,j] for i,j in zip(labels_start_ind_per_dataset, labels_end_ind_per_dataset)])
+
     def predict_from_data_iterator(self,
                                    data_iterator,
                                    save_probabilities: bool = False,
@@ -64,6 +57,14 @@ class mcUNetPredictor(nnUNetPredictor):
         each element returned by data_iterator must be a dict with 'data', 'ofile' and 'data_properties' keys!
         If 'ofile' is None, the result will be returned instead of written to a file
         """
+        assert self.plans_manager.plans['dataset_label_dict'] is not None, "dataset_label_dict must be not None"
+        self.dataset_label_dict = self.plans_manager.plans['dataset_label_dict']
+        labels_num_per_dataset = [len(label_list) for label_list in self.dataset_label_dict.values()]
+        labels_start_ind_per_dataset = [sum(labels_num_per_dataset[:i]) for i in range(len(labels_num_per_dataset))]
+        labels_end_ind_per_dataset = [sum(labels_num_per_dataset[:i+1]) for i in range(len(labels_num_per_dataset))]
+
+        self.dataset_label_start_end_dict = dict(zip(self.dataset_label_dict.keys(), [[i,j] for i,j in zip(labels_start_ind_per_dataset, labels_end_ind_per_dataset)]))
+
         with multiprocessing.get_context("spawn").Pool(num_processes_segmentation_export) as export_pool:
             worker_list = [i for i in export_pool._pool]
             r = []
@@ -96,7 +97,7 @@ class mcUNetPredictor(nnUNetPredictor):
 
                 # ofline must be not None if prediction is not to be returned
                 assert ofile is not None or prediction is not None, "either ofile or prediction must be not None"
-
+                print(ofile)
                 if ofile is not None:
                     # this needs to go into background processes
                     # export_prediction_from_logits(prediction, properties, configuration_manager, plans_manager,
@@ -104,17 +105,19 @@ class mcUNetPredictor(nnUNetPredictor):
                     print('sending off prediction to background worker for resampling and export')
 
                     dataset_name_list = self.dataset_label_dict.keys()
-                    dataset_start_ind = self.dataset_label_start_end_dict[dataset_name][0]
-                    dataset_end_ind = self.dataset_label_start_end_dict[dataset_name][1]
 
-                    for dataset_name,label_list in dataset_name_list.items():
-                        cur_dataset_ofile = ofile.replace('.nii.gz', f'_{dataset_name}.nii.gz')
+                    for dataset_name in dataset_name_list:
+                        dataset_start_ind = self.dataset_label_start_end_dict[dataset_name][0]
+                        dataset_end_ind = self.dataset_label_start_end_dict[dataset_name][1]
+
+                        cur_dataset_ofile = ofile+f'_{dataset_name}'
                         cur_prediction = prediction[dataset_start_ind:dataset_end_ind]
+                        r.append(
                         export_pool.starmap_async(
                                 export_prediction_from_logits,
                                 ((cur_prediction, properties, self.configuration_manager, self.plans_manager,
                                   self.dataset_json, cur_dataset_ofile, save_probabilities),)
-                            )
+                            ))
                 print(f'done with {os.path.basename(ofile)}')
             ret = [i.get()[0] for i in r]
 
@@ -126,4 +129,3 @@ class mcUNetPredictor(nnUNetPredictor):
         # clear device cache
         empty_cache(self.device)
         return ret
-
